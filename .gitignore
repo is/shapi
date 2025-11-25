@@ -8,3 +8,8 @@ wheels/
 
 # Virtual environments
 .venv
+/c*.py
+.python-version
+/server.crt
+/server.key
+/__env
