@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 
 from shapi.dto import ExecuteRequest, ExecuteResponse
-from shapi.execute import execute_simple
+from shapi.execute import execute_simple, prepare_environment
 
 VERSION = "0.0.1"
 
@@ -19,9 +19,11 @@ def index():
 async def execute_command(
     request: ExecuteRequest,
 ):
+    env = prepare_environment(request.env, request.env_replace)
     result = await execute_simple(
         request.command,
         request.cwd,
+        env,
         request.timeout  # type: ignore
     )
 
