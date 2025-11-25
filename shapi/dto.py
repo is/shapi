@@ -1,0 +1,32 @@
+from typing import Optional, List
+from pydantic import BaseModel, Field
+
+class RequestBase(BaseModel):
+    request_id:str = Field(default="_", description="请求ID")
+    name:Optional[str] = Field(default=None, description="请求日志描述")
+    path:Optional[str] = Field(default=None, description="请求路径")
+    sign:Optional[str] = Field(default=None, description="请求签名")
+
+
+class ResponseBase(BaseModel):
+    request_id:str = Field(..., description="请求ID")
+    status:str = Field(..., description="")
+    error_message:str | None = Field(None, description="错误信息")
+
+
+class ExecuteRequest(RequestBase):
+    """命令执行请求"""
+    command:List[str] = Field(..., description="命令行")
+    use_pty: bool = Field(default=False, description="是否使用 PTY 模式")
+    cwd: Optional[str] = Field(default=None, description="工作目录")
+    timeout: Optional[float] = Field(default=3600.0, description="超时时间(秒)")
+    env: Optional[dict] = Field(default=None, description="额外的环境变量（会合并到当前环境）")
+    env_replace: bool = Field(default=False, description="是否完全替换环境变量（而非合并）")
+    record: bool = Field(default=False, description="是否记录日志")
+
+
+class ExecuteResponse(ResponseBase):
+    """命令执行响应"""
+    return_code: int = Field(..., description="返回码")
+    stdout: str = Field(..., description="标准输出")
+    stderr: str = Field(..., description="标准错误输出")
