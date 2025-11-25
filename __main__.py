@@ -1,20 +1,25 @@
+import os
+import tomllib
+
 from hypercorn.asyncio import serve
 import hypercorn
-import asyncio
 
 from shapi.app import app
 
 def main():
     """Entry point for running the app."""
-    config = hypercorn.Config()
-    config.bind = ["0.0.0.0:9080"]
-    config.use_reloader = True
-    config.worker_class = "uvloop"
-    config.workers = 1
-    config.accesslog = '-'
-    config.ca_certs = 'server.crt'
-    config.certfile = 'server.crt'
-    config.keyfile = 'server.key'
+    if os.path.exists('hypercorn.toml'):
+        config = hypercorn.Config.from_toml('hypercorn.toml')
+    else:
+        config = hypercorn.Config()
+        config.bind = ["0.0.0.0:9080"]
+        config.use_reloader = True
+        config.worker_class = "uvloop"
+        config.workers = 1
+        config.accesslog = '-'
+        config.ca_certs = 'server.crt'
+        config.certfile = 'server.crt'
+        config.keyfile = 'server.key'
     asyncio.run(serve(app, config)) # type: ignore
 
 if __name__ == "__main__":
