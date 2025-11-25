@@ -8,7 +8,7 @@ def bytes_xor(b0:bytes, b1:bytes) -> bytes:
     return bytes(x ^ y for x, y in zip(b0, b1))
 
 
-def nonce_generator(nonce_key:bytes) -> str:
+def token_generator(nonce_key:bytes) -> str:
     nonce_header = struct.pack('<Q', int(time.time() * 1000))
     nonce_random = struct.pack('<I', random.randint(0, 2**32-1))
     nonce_name = nonce_key[:4]
@@ -19,8 +19,8 @@ def nonce_generator(nonce_key:bytes) -> str:
     return (nonce_name + nonce_header + nonce_random + nonce_body ).hex()
 
 
-def nonce_verify(nonce_str:str, keys:dict[bytes, bytes]) -> bytes|None:
-    nonce = bytes.fromhex(nonce_str)
+def token_verify(token_str:str, keys:dict[bytes, bytes]) -> bytes|None:
+    nonce = bytes.fromhex(token_str)
     if len(nonce) != 24:
         return None
     
