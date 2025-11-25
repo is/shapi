@@ -12,6 +12,9 @@ def main():
     config.worker_class = "uvloop"
     config.workers = 1
     config.accesslog = '-'
+    config.ca_certs = 'server.crt'
+    config.certfile = 'server.crt'
+    config.keyfile = 'server.key'
     asyncio.run(serve(app, config)) # type: ignore
 
 if __name__ == "__main__":
