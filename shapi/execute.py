@@ -6,6 +6,7 @@ import subprocess
 import anyio
 
 
+
 def prepare_environment(env: Optional[dict], env_replace: bool) -> Optional[dict]:
     """
     准备进程环境变量
@@ -29,11 +30,14 @@ def prepare_environment(env: Optional[dict], env_replace: bool) -> Optional[dict
         process_env.update(env)
         return process_env
 
+# ---
 async def execute_simple(
     command:list[str], 
     cwd: str|None, 
     env: dict|None,
-    timeout: float) -> dict[str, str|int]:
+    user: str|int = 0,
+    group: str|int = 0,
+    timeout: float = 60) -> dict[str, str|int]:
     """普通模式执行命令"""
     
     result = await anyio.run_process(
@@ -42,11 +46,12 @@ async def execute_simple(
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         cwd=cwd,
-        env=env)
+        env=env,
+        user=user,
+        group=group)
 
     return {
         'return_code': result.returncode,
         'stdout': result.stdout.decode('utf-8', errors='replace'),
         'stderr': result.stderr.decode('utf-8', errors='replace')
     }
-        
