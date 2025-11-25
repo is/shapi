@@ -11,6 +11,7 @@ def main():
     config.use_reloader = True
     config.worker_class = "uvloop"
     config.workers = 1
+    config.accesslog = '-'
     asyncio.run(serve(app, config)) # type: ignore
 
 if __name__ == "__main__":
