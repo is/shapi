@@ -122,7 +122,7 @@ class ExecuteTasks():
         for task_id in list(self.task_infos):
             task_info = self.task_infos[task_id]
             if task_info.finished_at > 0 and cur - task_info.finished_at > 300:
-                print('== EXECUTE TASKS CLEANER: {task_id}')
+                print(f'== EXECUTE TASKS CLEANER: {task_id}')
                 self.task_infos.pop(task_id)
 
     def gen_task_id(self):
