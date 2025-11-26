@@ -11,7 +11,7 @@ from shapi.dto import RequestBase
 from shapi.execute import execute_simple, prepare_environment, ExecuteTasks, ExecuteParams
 from shapi.auth import load_key_map_from_env, token_verify
 
-VERSION = "0.0.1"
+VERSION = "0.0.2"
 
 
 
