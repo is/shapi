@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 from shapi.dto import ExecuteRequest, ExecuteResponse
 from shapi.dto import RequestBase
 from shapi.execute import execute_simple, prepare_environment
-from shapi.nonce import load_key_map_from_env, token_verify
+from shapi.auth import load_key_map_from_env, token_verify
 
 VERSION = "0.0.1"
 
@@ -20,10 +20,10 @@ app = FastAPI(
 SHAPI_SECRET_KEYS = load_key_map_from_env()
 
 @app.middleware("http")
-async def nonce_verify_middleware(
+async def auth_middleware(
     request: Request,
     call_next: Callable[[Request], Awaitable[Response]]) -> Response:
-    nonce = request.headers.get("X-Shapi-Nonce")
+    nonce = request.headers.get("X-Shapi-Auth")
     nonce_key = None
     if nonce != None:
         nonce_key = token_verify(nonce, SHAPI_SECRET_KEYS)

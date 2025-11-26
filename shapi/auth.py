@@ -8,11 +8,11 @@ def bytes_xor(b0:bytes, b1:bytes) -> bytes:
     return bytes(x ^ y for x, y in zip(b0, b1))
 
 
-def token_generator(nonce_key:bytes) -> str:
+def auth_token(key:bytes) -> str:
     nonce_header = struct.pack('<Q', int(time.time() * 1000))
     nonce_random = struct.pack('<I', random.randint(0, 2**32-1))
-    nonce_name = nonce_key[:4]
-    nonce_body = hashlib.sha256(nonce_header + nonce_key + nonce_random).digest()[:8]
+    nonce_name = key[:4]
+    nonce_body = hashlib.sha256(nonce_header + key + nonce_random).digest()[:8]
     
     nonce_header = bytes_xor(nonce_header, nonce_body)
     nonce_name = bytes_xor(nonce_name, nonce_body[:4])
