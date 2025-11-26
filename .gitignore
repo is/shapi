@@ -13,3 +13,4 @@ wheels/
 /server.crt
 /server.key
 /__env
+/ex__
