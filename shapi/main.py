@@ -1,8 +1,10 @@
 from typing import Callable, Awaitable
 
+import asyncio
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import JSONResponse
-
 
 from shapi.dto import ExecuteRequest, ExecuteResponse, ExecuteAsyncResponse
 from shapi.dto import RequestBase
@@ -11,15 +13,33 @@ from shapi.auth import load_key_map_from_env, token_verify
 
 VERSION = "0.0.1"
 
+
+
+SHAPI_SECRET_KEYS = load_key_map_from_env()
+BACKGROUND_TASKS = []
+EXECUTE_TASKS = ExecuteTasks()
+
+async def execute_task_cleaner(tasks:ExecuteTasks):
+    while True:
+        await asyncio.sleep(3)
+        await tasks.clean_tasks()
+
+
+@asynccontextmanager
+async def lifespan(app:FastAPI):
+    BACKGROUND_TASKS.append(asyncio.create_task(execute_task_cleaner(EXECUTE_TASKS)))
+    yield
+    for task in BACKGROUND_TASKS:
+        task.cancel()
+
+
 app = FastAPI(
+    lifespan=lifespan,
     title="Shell Execution API",
     description="通过 HTTP API 执行 Shell 命令（带 Token 验证）",
     version=VERSION,
 )
 
-SHAPI_SECRET_KEYS = load_key_map_from_env()
-
-EXECUTE_TASKS = ExecuteTasks()
 
 @app.middleware("http")
 async def auth_middleware(
@@ -59,6 +79,32 @@ async def execute_command(
         return_code = result['return_code'], # type: ignore
         stdout = result['stdout'], # type: ignore
         stderr = result['stderr']) # type: ignore
+
+
+@app.get("/v1/aexecute/{task_id}", response_model=ExecuteResponse, response_model_exclude_unset=True)
+async def execute_async_task_info(task_id:str) -> ExecuteResponse:
+    task_info = EXECUTE_TASKS.task_infos.get(task_id)
+    if task_info == None:
+        return ExecuteResponse(
+            request_id='__',
+            status='ERROR',
+            error_message='invalid task token',
+            return_code=-1)
+    
+    if task_info.process == None:
+        return ExecuteResponse(
+            request_id='__',
+            status='CONTINUE',
+            return_code=0)
+    
+    EXECUTE_TASKS.task_infos.pop(task_id)
+    process = task_info.process
+    return ExecuteResponse(
+        request_id='__',
+        status='OK',
+        return_code=process.returncode,
+        stdout=process.stdout.decode('utf-8', errors='replace'),
+        stderr=process.stderr.decode('utf-8', errors='replace'))  
 
 
 @app.post("/v1/aexecute", response_model=ExecuteAsyncResponse, response_model_exclude_unset=True)

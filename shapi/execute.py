@@ -1,4 +1,4 @@
-from typing import Optional, Tuple, Awaitable
+from typing import Optional, Tuple, Awaitable, Any
 
 import os
 import subprocess
@@ -6,7 +6,7 @@ import asyncio
 import secrets
 import time
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 import anyio
 
@@ -58,7 +58,7 @@ class TaskInfo(BaseModel):
     timeout:float = Field(default=3600*10)
     start_at:float = Field(default=0)
     finished_at:float = Field(default=0)
-
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
 # ---
 async def execute_simple(
@@ -87,7 +87,8 @@ async def execute_task_runner(ti:TaskInfo, acp:Awaitable[subprocess.CompletedPro
     ti.process = await acp
     ti.finished_at = time.time()
     return ti.process
-    
+
+
 class ExecuteTasks():
     def __init__(self):
         self.task_infos = {}
@@ -115,11 +116,13 @@ class ExecuteTasks():
         return (task_id, None)
         
     
-    async def clear_tasks(self):
+    async def clean_tasks(self):
         cur = time.time()
+        
         for task_id in list(self.task_infos):
             task_info = self.task_infos[task_id]
             if task_info.finished_at > 0 and cur - task_info.finished_at > 300:
+                print('== EXECUTE TASKS CLEANER: {task_id}')
                 self.task_infos.pop(task_id)
 
     def gen_task_id(self):

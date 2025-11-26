@@ -30,9 +30,9 @@ class ExecuteRequest(RequestBase):
 
 class ExecuteResponse(ResponseBase):
     """命令执行响应"""
-    return_code: int = Field(..., description="返回码")
-    stdout: str = Field(..., description="标准输出")
-    stderr: str = Field(..., description="标准错误输出")
+    return_code:int = Field(default=0, description="返回码")
+    stdout: str|None = Field(default=None, description="标准输出")
+    stderr: str|None = Field(default=None, description="标准错误输出")
 
 class ExecuteAsyncResponse(ResponseBase):
     """命令执行响应"""
