@@ -4,7 +4,7 @@ import asyncio
 from hypercorn.asyncio import serve
 import hypercorn
 
-from shapi.app import app
+from shapi.main import app
 
 def main():
     """Entry point for running the app."""

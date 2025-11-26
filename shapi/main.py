@@ -4,9 +4,9 @@ from fastapi import FastAPI, Request, Response
 from fastapi.responses import JSONResponse
 
 
-from shapi.dto import ExecuteRequest, ExecuteResponse
+from shapi.dto import ExecuteRequest, ExecuteResponse, ExecuteAsyncResponse
 from shapi.dto import RequestBase
-from shapi.execute import execute_simple, prepare_environment
+from shapi.execute import execute_simple, prepare_environment, ExecuteTasks, ExecuteParams
 from shapi.auth import load_key_map_from_env, token_verify
 
 VERSION = "0.0.1"
@@ -18,6 +18,8 @@ app = FastAPI(
 )
 
 SHAPI_SECRET_KEYS = load_key_map_from_env()
+
+EXECUTE_TASKS = ExecuteTasks()
 
 @app.middleware("http")
 async def auth_middleware(
@@ -44,16 +46,40 @@ async def execute_command(
     request: ExecuteRequest,
 ):
     env = prepare_environment(request.env, request.env_replace)
-    result = await execute_simple(
-        request.command,
-        request.cwd,
-        env,
-        timeout = request.timeout  # type: ignore
-    )
+    params = ExecuteParams(
+        command=request.command,
+        cwd=request.cwd or "/root",
+        env=env,
+        timeout=request.timeout or 3600*10)
+    result = await execute_simple(params)
 
     return ExecuteResponse(
         request_id = request.request_id,
         status = "OK",
         return_code = result['return_code'], # type: ignore
         stdout = result['stdout'], # type: ignore
-        stderr = result['stderr'])
+        stderr = result['stderr']) # type: ignore
+
+
+@app.post("/v1/aexecute", response_model=ExecuteAsyncResponse, response_model_exclude_unset=True)
+async def execute_command_async(
+    request: ExecuteRequest) -> ExecuteAsyncResponse:
+    env = prepare_environment(request.env, request.env_replace)
+    params = ExecuteParams(
+        command=request.command,
+        cwd=request.cwd or "/root",
+        env=env)
+    task_id, exc = await EXECUTE_TASKS.add_task(
+        params)
+
+    if exc != None:
+        return ExecuteAsyncResponse(
+            request_id=request.request_id,
+            status="ERROR",
+            error_message=str(exc),
+            task_id='_')
+    
+    return ExecuteAsyncResponse(
+        request_id=request.request_id,
+        status="OK",
+        task_id=task_id)

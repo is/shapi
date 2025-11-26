@@ -11,7 +11,7 @@ class RequestBase(BaseModel):
 class ResponseBase(BaseModel):
     request_id:str = Field(..., description="请求ID")
     status:str = Field(..., description="")
-    error_message:str | None = Field(None, description="错误信息")
+    error_message:str | None = Field(default=None, description="错误信息")
     
 
 class ExecuteRequest(RequestBase):
@@ -27,8 +27,13 @@ class ExecuteRequest(RequestBase):
     record: bool = Field(default=False, description="是否记录日志")
 
 
+
 class ExecuteResponse(ResponseBase):
     """命令执行响应"""
     return_code: int = Field(..., description="返回码")
     stdout: str = Field(..., description="标准输出")
     stderr: str = Field(..., description="标准错误输出")
+
+class ExecuteAsyncResponse(ResponseBase):
+    """命令执行响应"""
+    task_id: str = Field(..., description="任务ID")
