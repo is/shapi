@@ -8,10 +8,6 @@ import hypercorn
 
 from shapi.main import app
 
-def load_logging_config():
-    if os.path.exists('logging.ini'):
-        os.makedirs("log", exist_ok=True)
-        logging.config.fileConfig("logging.ini", disable_existing_loggers=False)
 
 def main():
     """Entry point for running the app."""
@@ -28,10 +24,6 @@ def main():
         config.ca_certs = 'server.crt'
         config.certfile = 'server.crt'
         config.keyfile = 'server.key'
-
-    if False:
-        from shapi.misc.logutils import print_all_logging_config
-        print_all_logging_config(formatted=True)
     
     asyncio.run(serve(app, config)) # type: ignore
 
