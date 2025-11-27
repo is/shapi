@@ -2,6 +2,7 @@ from typing import Callable, Awaitable
 
 import asyncio
 import os
+import logging
 from binascii import b2a_base64, a2b_base64
 from contextlib import asynccontextmanager
 
@@ -19,6 +20,8 @@ SHAPI_SECRET_KEYS = load_key_map_from_env()
 BACKGROUND_TASKS = []
 EXECUTE_TASKS = ExecuteTasks()
 
+CL = logging.getLogger('console.main')
+
 async def execute_task_cleaner(tasks:ExecuteTasks):
     while True:
         await asyncio.sleep(3)
@@ -27,6 +30,11 @@ async def execute_task_cleaner(tasks:ExecuteTasks):
 
 @asynccontextmanager
 async def lifespan(app:FastAPI):
+    # import shapi.misc.logutils
+    # print("---")
+    # shapi.misc.logutils.print_all_logging_config(formatted=True)
+    # print("---")
+    
     BACKGROUND_TASKS.append(asyncio.create_task(execute_task_cleaner(EXECUTE_TASKS)))
     yield
     for task in BACKGROUND_TASKS:
