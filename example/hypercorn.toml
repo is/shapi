@@ -1,0 +1,6 @@
+bind = ["0.0.0.0:9080"]
+use_reloader = true
+worker_class = "uvloop"
+workers = 1
+accesslog = "log/access.log"
+
