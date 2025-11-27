@@ -15,3 +15,5 @@ wheels/
 /__env
 /ex__
 /log
+/hypercorn.toml
+/logging.ini
