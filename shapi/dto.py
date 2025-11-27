@@ -37,3 +37,21 @@ class ExecuteResponse(ResponseBase):
 class ExecuteAsyncResponse(ResponseBase):
     """命令执行响应"""
     task_id: str = Field(..., description="任务ID")
+
+# ---
+class ReadTextFileRequest(RequestBase):
+    filepath:str = Field(...)
+
+class ReadTextFileResponse(ResponseBase):
+    content:str|None = Field(default=None)
+
+class WriteTextFileRequest(RequestBase):
+    filepath:str = Field(...)
+    content:str = Field(...)
+    mode:int = Field(default=0)
+
+class WriteTextFileResponse(ResponseBase):
+    pass
+
+
+

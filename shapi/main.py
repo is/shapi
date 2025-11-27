@@ -1,13 +1,15 @@
 from typing import Callable, Awaitable
 
 import asyncio
+import os
+from binascii import b2a_base64, a2b_base64
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import JSONResponse
 
-from shapi.dto import ExecuteRequest, ExecuteResponse, ExecuteAsyncResponse
-from shapi.dto import RequestBase
+from shapi.dto import ExecuteRequest, ExecuteResponse, ExecuteAsyncResponse, \
+    ReadTextFileResponse, ReadTextFileRequest, WriteTextFileRequest, WriteTextFileResponse
 from shapi.execute import execute_simple, prepare_environment, ExecuteTasks, ExecuteParams
 from shapi.auth import load_key_map_from_env, token_verify
 
@@ -129,3 +131,35 @@ async def execute_command_async(
         request_id=request.request_id,
         status="OK",
         task_id=task_id)
+
+
+
+@app.post("/v1/fs/read", response_model=ReadTextFileResponse, response_model_exclude_unset=True)
+async def read_text_from_file(request:ReadTextFileRequest) -> ReadTextFileResponse:
+    try:
+        with open(request.filepath, 'rb') as f:
+            content = f.read()
+        return ReadTextFileResponse(
+            request_id=request.request_id,
+            status="OK",
+            content=b2a_base64(content).decode('utf-8'))
+    except Exception as e:
+        return ReadTextFileResponse(
+            request_id=request.request_id,
+            status="ERROR", error_message=str(e))
+
+
+@app.post("/v1/fs/write", response_model=WriteTextFileResponse, response_model_exclude_unset=True)
+async def write_text_to_file(request:WriteTextFileRequest) -> WriteTextFileResponse:
+    try:
+        with open(request.filepath, 'wb') as f:
+            f.write(a2b_base64(request.content))
+        if request.mode != 0:
+            os.chmod(request.filepath, request.mode)
+        return WriteTextFileResponse(
+            request_id=request.request_id,
+            status="OK")
+    except Exception as e:
+        return WriteTextFileResponse(
+            request_id=request.request_id,
+            status="ERROR", error_message=str(e))
