@@ -1,13 +1,21 @@
 import os
 import asyncio
+import json
+import logging.config
 
 from hypercorn.asyncio import serve
 import hypercorn
 
 from shapi.main import app
 
+def load_logging_config():
+    if os.path.exists('logging.ini'):
+        os.makedirs("log", exist_ok=True)
+        logging.config.fileConfig("logging.ini", disable_existing_loggers=False)
+
 def main():
     """Entry point for running the app."""
+
     if os.path.exists('hypercorn.toml'):
         config = hypercorn.Config.from_toml('hypercorn.toml')
     else:

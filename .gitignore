@@ -14,3 +14,4 @@ wheels/
 /server.key
 /__env
 /ex__
+/log

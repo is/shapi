@@ -13,9 +13,7 @@ from shapi.dto import ExecuteRequest, ExecuteResponse, ExecuteAsyncResponse, \
 from shapi.execute import execute_simple, prepare_environment, ExecuteTasks, ExecuteParams
 from shapi.auth import load_key_map_from_env, token_verify
 
-VERSION = "0.0.2"
-
-
+VERSION = "0.0.3"
 
 SHAPI_SECRET_KEYS = load_key_map_from_env()
 BACKGROUND_TASKS = []
