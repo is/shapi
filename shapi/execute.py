@@ -5,12 +5,16 @@ import subprocess
 import asyncio
 import secrets
 import time
+import logging
 
 from pydantic import BaseModel, Field, ConfigDict
 
 import anyio
 
 
+CL = logging.getLogger("console.main")
+def L_(msg:str):
+    CL.info(msg)
 
 def prepare_environment(env: Optional[dict], env_replace: bool) -> Optional[dict]:
     """
@@ -36,8 +40,6 @@ def prepare_environment(env: Optional[dict], env_replace: bool) -> Optional[dict
         return process_env
 
 
-
-
 class ExecuteParams(BaseModel):
     command:list[str] = Field(...)
     cwd:str = Field(...)
@@ -45,9 +47,6 @@ class ExecuteParams(BaseModel):
     user: str|int = Field(default=0)
     group: str|int = Field(default=0)
     timeout: float = Field(default=3600*10)
-
-
-
 
 
 class TaskInfo(BaseModel):
@@ -60,11 +59,13 @@ class TaskInfo(BaseModel):
     finished_at:float = Field(default=0)
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
+
 # ---
 async def execute_simple(
     params:ExecuteParams) -> dict[str, str|int]:
     """普通模式执行命令"""
     
+    ts = time.time()
     result = await anyio.run_process(
         command=params.command,
         stdin=None,                            
@@ -74,6 +75,8 @@ async def execute_simple(
         env=params.env,
         user=params.user,
         group=params.group)
+    te = time.time()
+    L_(f'EXEC-S {' '.join(params.command)} / {te-ts:.1f}s')
 
     return {
         'return_code': result.returncode,
@@ -112,7 +115,7 @@ class ExecuteTasks():
         ti = TaskInfo(task_id=task_id, params=params)
         ti.task = asyncio.create_task(execute_task_runner(ti, cp), name=f"execute_task_{task_id}")
         self.task_infos[task_id] = ti
-
+        L_(f'EXEC-A {' '.join(params.command)} → {task_id}')
         return (task_id, None)
         
     

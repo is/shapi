@@ -44,7 +44,7 @@ def token_verify(token_str:str, keys:dict[bytes, bytes]) -> bytes|None:
 def load_key_from_env():
     return bytes.fromhex(os.environ.get('SHAPI_SECRET_KEY', '33333333333333333333333333333333'))
 
-def load_key_map_from_env():
+def load_key_map_from_env() -> dict[bytes, bytes]:
     env_str = os.environ.get('SHAPI_SECRET_KEY', '33333333333333333333333333333333')
     key_str = env_str.split(',')
     keys = [ bytes.fromhex(k) for k in key_str ]
