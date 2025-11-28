@@ -16,7 +16,7 @@ from shapi.execute import execute_simple, prepare_environment, ExecuteTasks, Exe
 from shapi.execute_websocket import execute_websocket
 from shapi.auth import load_key_map_from_env, token_verify
 
-VERSION = "0.3.2"
+VERSION = "0.3.5"
 
 SHAPI_SECRET_KEYS = load_key_map_from_env()
 BACKGROUND_TASKS = []
@@ -32,12 +32,8 @@ async def execute_task_cleaner(tasks:ExecuteTasks):
 
 @asynccontextmanager
 async def lifespan(app:FastAPI):
-    # import shapi.misc.logutils
-    # print("---")
-    # shapi.misc.logutils.print_all_logging_config(formatted=True)
-    # print("---")
-
     BACKGROUND_TASKS.append(asyncio.create_task(execute_task_cleaner(EXECUTE_TASKS)))
+    CL.error(f'-- -- -- | SHELL API -- {VERSION}')
     yield
     for task in BACKGROUND_TASKS:
         task.cancel()
@@ -109,7 +105,8 @@ async def execute_async_task_info(task_id:str) -> ExecuteResponse:
     
     EXECUTE_TASKS.task_infos.pop(task_id)
     process = task_info.process
-    CL.info(f'EXEC-A TASK:{task_id} / {task_info.finished_at-task_info.start_at:.1f}s / {process.returncode}')
+    during = task_info.finished_at-task_info.start_at
+    CL.info(f'EXEC-A TASK:{task_id} / {during:.1f}s / {process.returncode}')
     return ExecuteResponse(
         request_id='__',
         status='OK',

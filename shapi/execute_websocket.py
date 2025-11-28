@@ -1,5 +1,8 @@
 # import json
 import asyncio
+import secrets
+import logging
+import time
 from subprocess import PIPE
 
 from fastapi import WebSocket
@@ -8,6 +11,8 @@ from anyio import open_process
 from anyio.abc import ByteReceiveStream
 
 from shapi.execute import prepare_environment, execute_simple, ExecuteParams as EP
+
+CL = logging.getLogger('console.main')
 
 class ExecuteParams(BaseModel):
     request_id:str = Field(default='__')
@@ -23,10 +28,13 @@ class ExecuteParams(BaseModel):
 
 async def execute_websocket(websocket:WebSocket):
     await websocket.accept()
-        
+    task_id = secrets.token_hex(8)
+    
     command_dict = await websocket.receive_json()
     params = ExecuteParams(**command_dict)
-    print(params.model_dump(exclude_unset=True))
+    # print(params.model_dump(exclude_unset=True))
+    ts = time.time()
+    CL.info(f'''EXEC-X {' '.join(params.command)} → {task_id}''')
   
     env = prepare_environment(params.env, params.env_replace)
     async with asyncio.TaskGroup() as task_group, \
@@ -47,8 +55,14 @@ async def execute_websocket(websocket:WebSocket):
 
         await process.wait()
         return_code = process.returncode
+
     await websocket.send_json({
         'channel': 'exit',
         'return_code': return_code
     })    
+    te = time.time()
+    during = te - ts
+    CL.info(f'EXEC-X TASK:{task_id} / {during:.1f}s / {process.returncode}')
     await websocket.close()
+    
+    
