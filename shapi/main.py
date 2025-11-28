@@ -3,6 +3,7 @@ from typing import Callable, Awaitable
 import asyncio
 import os
 import logging
+
 from binascii import b2a_base64, a2b_base64
 from contextlib import asynccontextmanager
 
@@ -34,7 +35,7 @@ async def lifespan(app:FastAPI):
     # print("---")
     # shapi.misc.logutils.print_all_logging_config(formatted=True)
     # print("---")
-    
+
     BACKGROUND_TASKS.append(asyncio.create_task(execute_task_cleaner(EXECUTE_TASKS)))
     yield
     for task in BACKGROUND_TASKS:
@@ -107,6 +108,7 @@ async def execute_async_task_info(task_id:str) -> ExecuteResponse:
     
     EXECUTE_TASKS.task_infos.pop(task_id)
     process = task_info.process
+    CL.info(f'EXEC-A TASK:{task_id} / {task_info.finished_at-task_info.start_at:.1f}s / {process.returncode}')
     return ExecuteResponse(
         request_id='__',
         status='OK',

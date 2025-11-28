@@ -76,7 +76,7 @@ async def execute_simple(
         user=params.user,
         group=params.group)
     te = time.time()
-    L_(f'EXEC-S {' '.join(params.command)} / {te-ts:.1f}s')
+    L_(f'EXEC-S {' '.join(params.command)} / {te-ts:.1f}s / { result.returncode}')
 
     return {
         'return_code': result.returncode,
