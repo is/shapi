@@ -7,15 +7,16 @@ import logging
 from binascii import b2a_base64, a2b_base64
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request, Response
+from fastapi import FastAPI, Request, Response, WebSocket
 from fastapi.responses import JSONResponse
 
 from shapi.dto import ExecuteRequest, ExecuteResponse, ExecuteAsyncResponse, \
     ReadTextFileResponse, ReadTextFileRequest, WriteTextFileRequest, WriteTextFileResponse
 from shapi.execute import execute_simple, prepare_environment, ExecuteTasks, ExecuteParams
+from shapi.execute_websocket import execute_websocket
 from shapi.auth import load_key_map_from_env, token_verify
 
-VERSION = "0.0.3"
+VERSION = "0.3.2"
 
 SHAPI_SECRET_KEYS = load_key_map_from_env()
 BACKGROUND_TASKS = []
@@ -116,7 +117,6 @@ async def execute_async_task_info(task_id:str) -> ExecuteResponse:
         stdout=process.stdout.decode('utf-8', errors='replace'),
         stderr=process.stderr.decode('utf-8', errors='replace'))  
 
-
 @app.post("/v1/aexecute", response_model=ExecuteAsyncResponse, response_model_exclude_unset=True)
 async def execute_command_async(
     request: ExecuteRequest) -> ExecuteAsyncResponse:
@@ -140,6 +140,9 @@ async def execute_command_async(
         status="OK",
         task_id=task_id)
 
+@app.websocket('/v1/executews')
+async def execute_ws_endpoint(websocket:WebSocket):
+    await execute_websocket(websocket)
 
 
 @app.post("/v1/fs/read", response_model=ReadTextFileResponse, response_model_exclude_unset=True)
