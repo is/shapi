@@ -90,7 +90,7 @@ async def execute_task_runner(ti:TaskInfo, acp:Awaitable[subprocess.CompletedPro
     ti.process = await acp
     ti.finished_at = time.time()
     return ti.process
-
+    
 
 class ExecuteTasks():
     def __init__(self):
@@ -108,7 +108,8 @@ class ExecuteTasks():
                 cwd=params.cwd,
                 env=params.env,
                 user=params.user,
-                group=params.group)
+                group=params.group,
+                check=False)
         except Exception as e:
             return ("_", e)
         

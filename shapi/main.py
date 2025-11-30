@@ -20,7 +20,7 @@ from shapi.execute import execute_simple, prepare_environment, ExecuteTasks, Exe
 from shapi.execute_websocket import execute_websocket
 from shapi.auth import load_key_map_from_env, token_verify
 
-VERSION = "0.3.7.0"
+VERSION = "0.3.8.0"
 
 SHAPI_SECRET_KEYS = load_key_map_from_env()
 BACKGROUND_TASKS = []
@@ -126,8 +126,8 @@ async def execute_command_async(
         command=request.command,
         cwd=request.cwd or "/root",
         env=env)
-    task_id, exc = await EXECUTE_TASKS.add_task(
-        params)
+
+    task_id, exc = await EXECUTE_TASKS.add_task(params)
 
     if exc != None:
         return ExecuteAsyncResponse(
