@@ -2,6 +2,7 @@ from typing import Callable, Awaitable
 
 import asyncio
 import os
+import signal
 import logging
 
 from binascii import b2a_base64, a2b_base64
@@ -10,8 +11,11 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, Response, WebSocket
 from fastapi.responses import JSONResponse
 
-from shapi.dto import ExecuteRequest, ExecuteResponse, ExecuteAsyncResponse, \
-    ReadTextFileResponse, ReadTextFileRequest, WriteTextFileRequest, WriteTextFileResponse
+from shapi.dto import \
+    ExecuteRequest, ExecuteResponse, ExecuteAsyncResponse, \
+    ReadTextFileResponse, ReadTextFileRequest, \
+    WriteTextFileRequest, WriteTextFileResponse, \
+    ResponseBase
 from shapi.execute import execute_simple, prepare_environment, ExecuteTasks, ExecuteParams
 from shapi.execute_websocket import execute_websocket
 from shapi.auth import load_key_map_from_env, token_verify
@@ -171,3 +175,11 @@ async def write_text_to_file(request:WriteTextFileRequest) -> WriteTextFileRespo
         return WriteTextFileResponse(
             request_id=request.request_id,
             status="ERROR", error_message=str(e))
+
+@app.get("/v1/shutdown", response_model=ResponseBase, response_model_exclude_unset=True)
+async def shutdown() -> ResponseBase:
+    if not os.environ.get('SHAPI_REMOTE_SHOTDOWN'):
+        return ResponseBase(request_id="SHUTDOWN", status="ERROR", error_message="SH API server CAN NOT be shutdowned")
+    CL.info('SHUTDOWN')
+    os.kill(os.getpid(), signal.SIGINT)
+    return ResponseBase(request_id="SHUTDOWN", status="OK")
