@@ -178,7 +178,7 @@ async def write_text_to_file(request:WriteTextFileRequest) -> WriteTextFileRespo
 
 @app.get("/v1/shutdown", response_model=ResponseBase, response_model_exclude_unset=True)
 async def shutdown() -> ResponseBase:
-    if not os.environ.get('SHAPI_REMOTE_SHOTDOWN'):
+    if not os.environ.get('SHAPI_REMOTE_SHUTDOWN'):
         return ResponseBase(request_id="SHUTDOWN", status="ERROR", error_message="SH API server CAN NOT be shutdowned")
     CL.info('SHUTDOWN')
     os.kill(os.getpid(), signal.SIGINT)
