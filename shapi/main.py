@@ -20,7 +20,7 @@ from shapi.execute import execute_simple, prepare_environment, ExecuteTasks, Exe
 from shapi.execute_websocket import execute_websocket
 from shapi.auth import load_key_map_from_env, token_verify
 
-VERSION = "0.3.6"
+VERSION = "0.3.7.0"
 
 SHAPI_SECRET_KEYS = load_key_map_from_env()
 BACKGROUND_TASKS = []
