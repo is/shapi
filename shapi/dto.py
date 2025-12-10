@@ -24,8 +24,8 @@ class ExecuteRequest(RequestBase):
     group: Optional[int|str] = Field(default=None, description="执行用户组")
     env: Optional[dict] = Field(default=None, description="额外的环境变量（会合并到当前环境）")
     env_replace: bool = Field(default=False, description="是否完全替换环境变量（而非合并）")
+    env_var: bool = Field(default=False, description="是否对命令行中的变量做替换")
     record: bool = Field(default=False, description="是否记录日志")
-
 
 
 class ExecuteResponse(ResponseBase):
@@ -33,6 +33,7 @@ class ExecuteResponse(ResponseBase):
     return_code:int = Field(default=0, description="返回码")
     stdout: str|None = Field(default=None, description="标准输出")
     stderr: str|None = Field(default=None, description="标准错误输出")
+
 
 class ExecuteAsyncResponse(ResponseBase):
     """命令执行响应"""
@@ -52,6 +53,3 @@ class WriteTextFileRequest(RequestBase):
 
 class WriteTextFileResponse(ResponseBase):
     pass
-
-
-

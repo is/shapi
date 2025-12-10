@@ -10,9 +10,10 @@ from pydantic import BaseModel, Field
 from anyio import open_process
 from anyio.abc import ByteReceiveStream
 
-from shapi.execute import prepare_environment, execute_simple, ExecuteParams as EP
+from shapi.execute import prepare_environment, format_env_var, ExecuteParams as EP
 
 CL = logging.getLogger('console.main')
+
 
 class ExecuteParams(BaseModel):
     request_id:str = Field(default='__')
@@ -20,6 +21,7 @@ class ExecuteParams(BaseModel):
     cwd:str = Field('.')
     env:dict|None = Field(None)
     env_replace:bool = Field(False)
+    env_var:bool = Field(default=False, description="是否对命令行中的环境变量做替换")
     use_pty:bool = Field(False)
     user: str|int = Field(default=0)
     group: str|int = Field(default=0)
@@ -37,8 +39,9 @@ async def execute_websocket(websocket:WebSocket):
     CL.info(f'''EXEC-X {' '.join(params.command)} → {task_id}''')
   
     env = prepare_environment(params.env, params.env_replace)
+    command = format_env_var(params.command, env, params.env_var)
     async with asyncio.TaskGroup() as task_group, \
-        await open_process(params.command, 
+        await open_process(command, 
             env=env,
             cwd=params.cwd) as process:
 

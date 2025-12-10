@@ -16,11 +16,14 @@ from shapi.dto import \
     ReadTextFileResponse, ReadTextFileRequest, \
     WriteTextFileRequest, WriteTextFileResponse, \
     ResponseBase
-from shapi.execute import execute_simple, prepare_environment, ExecuteTasks, ExecuteParams
+
+from shapi.execute import \
+    format_env_var, execute_simple, prepare_environment, \
+    ExecuteTasks, ExecuteParams
 from shapi.execute_websocket import execute_websocket
 from shapi.auth import load_key_map_from_env, token_verify
 
-VERSION = "0.3.8.0"
+VERSION = "0.3.9.1"
 
 SHAPI_SECRET_KEYS = load_key_map_from_env()
 BACKGROUND_TASKS = []
@@ -76,8 +79,9 @@ async def execute_command(
     request: ExecuteRequest,
 ):
     env = prepare_environment(request.env, request.env_replace)
+    command = format_env_var(request.command, env, request.env_var)
     params = ExecuteParams(
-        command=request.command,
+        command=command,
         cwd=request.cwd or "/root",
         env=env,
         timeout=request.timeout or 3600*10)
@@ -122,8 +126,9 @@ async def execute_async_task_info(task_id:str) -> ExecuteResponse:
 async def execute_command_async(
     request: ExecuteRequest) -> ExecuteAsyncResponse:
     env = prepare_environment(request.env, request.env_replace)
+    command = format_env_var(request.command, env, request.env_var)
     params = ExecuteParams(
-        command=request.command,
+        command=command,
         cwd=request.cwd or "/root",
         env=env)
 

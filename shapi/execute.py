@@ -40,6 +40,21 @@ def prepare_environment(env: Optional[dict], env_replace: bool) -> Optional[dict
         return process_env
 
 
+def format_env_var(command:list[str], env:Optional[dict[str, str]], format:bool=False) -> list[str]:
+    """
+    将命令行中的环境变量做替换.
+    """
+    if not format:
+        return command
+    
+    if env == None:
+        env = os.environ # type: ignore
+    command = [
+        c.format(**env) for c in command # type: ignore
+    ]
+    return command
+
+
 class ExecuteParams(BaseModel):
     command:list[str] = Field(...)
     cwd:str = Field(...)
