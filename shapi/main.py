@@ -189,9 +189,10 @@ async def fs_write_v1(request:WriteTextFileRequest) -> WriteTextFileResponse:
 
 @app.post(
     "/v1/fs/stat",
-    response_model=WriteTextFileResponse,
+    response_model=dto.FsStatResponse,
     response_model_exclude_unset=True)
 async def fs_stat_v1(request:dto.FsStatRequest):
+    CL.info(f'STAT {request.filepath}')
     try:
         result = os.stat(
             request.filepath,
