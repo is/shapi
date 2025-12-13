@@ -25,7 +25,7 @@ from shapi.execute import \
 from shapi.execute_websocket import execute_websocket
 from shapi.auth import load_key_map_from_env, token_verify
 
-VERSION = "0.3.10.3"
+VERSION = "0.3.12.1"
 
 SHAPI_SECRET_KEYS = load_key_map_from_env()
 BACKGROUND_TASKS = []
@@ -192,19 +192,20 @@ async def fs_write_v1(request:WriteTextFileRequest) -> WriteTextFileResponse:
     response_model=dto.FsStatResponse,
     response_model_exclude_unset=True)
 async def fs_stat_v1(request:dto.FsStatRequest):
-    CL.info(f'STAT {request.filepath}')
     try:
         result = os.stat(
             request.filepath,
             follow_symlinks=request.follow_symlinks)
         
+        CL.info(f'STAT {request.filepath} - {result.st_mode:o}/{result.st_size}')
         return dto.FsStatResponse(
             request_id=request.request_id,
             status="OK",
             stat=list(result), # type: ignore
             exist=True,
         )
-    except FileNotFoundError as e:
+    except FileNotFoundError as _:
+        CL.info(f'STAT {request.filepath} - nonexist')
         return dto.FsStatResponse(
             request_id=request.request_id,
             status="OK",
