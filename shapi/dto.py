@@ -1,4 +1,7 @@
+import typing as t
 from typing import Optional, List
+import os
+
 from pydantic import BaseModel, Field, ConfigDict
 
 class RequestBase(BaseModel):
@@ -53,3 +56,12 @@ class WriteTextFileRequest(RequestBase):
 
 class WriteTextFileResponse(ResponseBase):
     pass
+
+# ---
+class FsStatRequest(RequestBase):
+    filepath:str = Field(description="文件路径")
+    follow_symlinks:bool = Field(True, description="是否跟随符号链接")
+
+class FsStatResponse(ResponseBase):
+    stat:t.List[int] |None = Field(default=None)
+    exist:bool = Field(default=False)

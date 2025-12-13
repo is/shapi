@@ -17,13 +17,15 @@ from shapi.dto import \
     WriteTextFileRequest, WriteTextFileResponse, \
     ResponseBase
 
+import shapi.dto as dto
+
 from shapi.execute import \
     format_env_var, execute_simple, prepare_environment, \
     ExecuteTasks, ExecuteParams
 from shapi.execute_websocket import execute_websocket
 from shapi.auth import load_key_map_from_env, token_verify
 
-VERSION = "0.3.9.1"
+VERSION = "0.3.10.2"
 
 SHAPI_SECRET_KEYS = load_key_map_from_env()
 BACKGROUND_TASKS = []
@@ -152,7 +154,7 @@ async def execute_ws_endpoint(websocket:WebSocket):
 
 
 @app.post("/v1/fs/read", response_model=ReadTextFileResponse, response_model_exclude_unset=True)
-async def read_text_from_file(request:ReadTextFileRequest) -> ReadTextFileResponse:
+async def fs_read_v1(request:ReadTextFileRequest) -> ReadTextFileResponse:
     try:
         with open(request.filepath, 'rb') as f:
             content = f.read()
@@ -167,7 +169,7 @@ async def read_text_from_file(request:ReadTextFileRequest) -> ReadTextFileRespon
 
 
 @app.post("/v1/fs/write", response_model=WriteTextFileResponse, response_model_exclude_unset=True)
-async def write_text_to_file(request:WriteTextFileRequest) -> WriteTextFileResponse:
+async def fs_write_v1(request:WriteTextFileRequest) -> WriteTextFileResponse:
     try:
         with open(request.filepath, 'wb') as f:
             f.write(a2b_base64(request.content))
@@ -181,6 +183,30 @@ async def write_text_to_file(request:WriteTextFileRequest) -> WriteTextFileRespo
             request_id=request.request_id,
             status="ERROR", error_message=str(e))
 
+
+@app.post(
+    "/v1/fs/stat",
+    response_model=WriteTextFileResponse,
+    response_model_exclude_unset=True)
+async def fs_stat_v1(request:dto.FsStatRequest):
+    try:
+        result = os.stat(
+            request.filepath,
+            follow_symlinks=request.follow_symlinks)
+        
+        return dto.FsStatResponse(
+            request_id=request.request_id,
+            status="OK",
+            stat=list(result), # type: ignore
+            exist=True,
+        )
+    except FileNotFoundError as e:
+        return dto.FsStatResponse(
+            request_id=request.request_id,
+            status="OK",
+            exist=False,
+        )
+
 @app.get("/v1/shutdown", response_model=ResponseBase, response_model_exclude_unset=True)
 async def shutdown() -> ResponseBase:
     if not os.environ.get('SHAPI_REMOTE_SHUTDOWN'):
@@ -188,3 +214,4 @@ async def shutdown() -> ResponseBase:
     CL.info('SHUTDOWN')
     os.kill(os.getpid(), signal.SIGINT)
     return ResponseBase(request_id="SHUTDOWN", status="OK")
+
