@@ -25,7 +25,7 @@ from shapi.execute import \
 from shapi.execute_websocket import execute_websocket
 from shapi.auth import load_key_map_from_env, token_verify
 
-VERSION = "0.3.10.2"
+VERSION = "0.3.10.3"
 
 SHAPI_SECRET_KEYS = load_key_map_from_env()
 BACKGROUND_TASKS = []
@@ -73,7 +73,10 @@ async def auth_middleware(
 
 @app.get("/")
 def index():
-    return {"message": "Hello, World 2!"}
+    return {
+        "message": "Hello, World 2",
+        "version": VERSION
+    }
 
 
 @app.post("/v1/execute", response_model=ExecuteResponse, response_model_exclude_unset=True)
